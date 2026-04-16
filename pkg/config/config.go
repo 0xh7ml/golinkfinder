@@ -8,19 +8,19 @@ import (
 	"strings"
 )
 
-// Config holds all configuration options for golinkfinder
+// SecretConfig holds all configuration options for secretfinder
 type Config struct {
-	Input    string
-	Output   string
-	Regex    string
-	Domain   bool
-	Burp     bool
-	Cookies  string
-	Timeout  int
-	Workers  int
-	MaxDepth int
-	Verbose  bool
-	NoColors bool
+	Input          string
+	Output         string
+	Cookies        string
+	UserAgent      string
+	Timeout        int
+	Workers        int
+	Verbose        bool
+	IncludeContext bool
+	ContextLines   int
+	Patterns       []string
+	NoColors       bool
 }
 
 // Validate checks if the configuration is valid
@@ -38,11 +38,11 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("workers must be positive")
 	}
 
-	if c.MaxDepth < 0 {
-		return fmt.Errorf("max-depth cannot be negative")
+	if c.ContextLines < 0 {
+		return fmt.Errorf("context-lines cannot be negative")
 	}
 
-	// Validate input format (skip for stdin input)
+	// Validate input format
 	if c.Input != "-" && !c.isValidInput() {
 		return fmt.Errorf("invalid input format: %s", c.Input)
 	}
@@ -64,17 +64,12 @@ func (c *Config) isValidInput() bool {
 		return true
 	}
 
-	// Check for wildcard pattern
-	if strings.Contains(input, "*") {
-		return true
-	}
-
 	return false
 }
 
 // isURL checks if the input is a valid URL
 func (c *Config) isURL(input string) bool {
-	schemes := []string{"http://", "https://", "file://", "ftp://", "ftps://"}
+	schemes := []string{"http://", "https://", "file://"}
 	for _, scheme := range schemes {
 		if strings.HasPrefix(input, scheme) {
 			if _, err := url.Parse(input); err == nil {
@@ -82,12 +77,6 @@ func (c *Config) isURL(input string) bool {
 			}
 		}
 	}
-
-	// Handle view-source: prefix (Firefox URL inspector)
-	if strings.HasPrefix(input, "view-source:") {
-		return c.isURL(input[12:])
-	}
-
 	return false
 }
 
@@ -105,4 +94,40 @@ func (c *Config) isFile(input string) bool {
 // IsOutputCLI returns true if output should go to CLI
 func (c *Config) IsOutputCLI() bool {
 	return strings.ToLower(c.Output) == "cli"
+}
+
+// IsURLList checks if input is a file containing URLs
+func (c *Config) IsURLList() bool {
+	if c.Input == "-" {
+		return false
+	}
+
+	// Check if it's a file with .txt or .list extension
+	if !c.isURL(c.Input) && c.isFile(c.Input) {
+		ext := strings.ToLower(filepath.Ext(c.Input))
+		return ext == ".txt" || ext == ".list"
+	}
+
+	return false
+}
+
+// ParseCookieHeader parses a cookie string into a header value
+func (c *Config) ParseCookieHeader() string {
+	if c.Cookies == "" {
+		return ""
+	}
+
+	// Basic validation - ensure it looks like cookies
+	parts := strings.Split(c.Cookies, ";")
+	for i, part := range parts {
+		part = strings.TrimSpace(part)
+		if !strings.Contains(part, "=") {
+			continue
+		}
+		if i > 0 {
+			parts[i] = part
+		}
+	}
+
+	return strings.Join(parts, "; ")
 }

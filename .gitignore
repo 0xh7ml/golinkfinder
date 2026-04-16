@@ -1,1 +1,78 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Build output directories
+build/
+dist/
+bin/
+
+# Compiled binaries
 golinkfinder
+secretfinder
+secretfinder-*
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.swp
+*.swo
+*~
+
+# Output files (but keep example files)
+secrets.txt
+results.txt
+output.html
+active_urls.txt
+poc.txt
+urls.txt
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Claude Code files
+.claude/
+
+# Debug files
+debug
+__debug_bin
+
+# Test files
+test.js
+example-secrets.js
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
